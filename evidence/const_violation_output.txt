@@ -1,0 +1,6 @@
+Value before calling function: matrix[0][0] = 10
+
+Calling function that will attempt to modify const data...
+Inside process_matrix function.
+Processing a 2x3 matrix.
+Attempting to modify const data (undefined behavior)...

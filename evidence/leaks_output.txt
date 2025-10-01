@@ -1,0 +1,50 @@
+Running data ingestion process...
+
+Starting file processing for: data.txt
+Finished processing 10000 records.
+Process:         data_processer [86352]
+Path:            /Users/USER/*/data_processer
+Load Address:    0x104f44000
+Identifier:      data_processer
+Version:         0
+Code Type:       ARM64
+Platform:        macOS
+Parent Process:  leaks [86350]
+Target Type:     live task
+
+Date/Time:       2025-10-02 01:23:35.117 +0800
+Launch Time:     2025-10-02 01:23:34.675 +0800
+OS Version:      macOS 26.0.1 (25A362)
+Report Version:  7
+Analysis Tool:   /usr/bin/leaks
+
+Physical footprint:         2944K
+Physical footprint (peak):  8352K
+Idle exit:                  untracked
+----
+
+leaks Report Version: 4.0, multi-line stacks
+Process 86352: 20190 nodes malloced for 580 KB
+Process 86352: 20000 leaks for 480000 total leaked bytes.
+
+STACK OF 10000 INSTANCES OF 'ROOT LEAK: <malloc in processLargeFile(std::__cxx11::basic_string<char> const&)>':
+5   dyld                                  0x195539d54 start + 7184
+4   data_processer                        0x104f44b90 main + 12  DataProcessor.cpp:65
+3   data_processer                        0x104f44b1c startDataIngestion() + 208  DataProcessor.cpp:59
+2   data_processer                        0x104f44944 processLargeFile(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&) + 184  DataProcessor.cpp:39
+1   libstdc++.6.dylib                     0x1054605fc operator new(unsigned long) + 28
+0   libsystem_malloc.dylib                0x195725f00 _malloc_zone_malloc_instrumented_or_legacy + 152 
+====
+    20000 (469K) << TOTAL >>
+
+      2 (48 bytes) ROOT LEAK: <malloc in processLargeFile(std::__cxx11::basic_string<char> const&) 0xb2f02c000> [32]
+         1 (16 bytes) <malloc in processLargeFile(std::__cxx11::basic_string<char> const&) 0xb2f030000> [16]
+
+      2 (48 bytes) ROOT LEAK: <malloc in processLargeFile(std::__cxx11::basic_string<char> const&) 0xb2f02c020> [32]
+         1 (16 bytes) <malloc in processLargeFile(std::__cxx11::basic_string<char> const&) 0xb2f030010> [16]
+
+      2 (48 bytes) ROOT LEAK: <malloc in processLargeFile(std::__cxx11::basic_string<char> const&) 0xb2f02c040> [32]
+         1 (16 bytes) <malloc in processLargeFile(std::__cxx11::basic_string<char> const&) 0xb2f030020> [16]
+
+      2 (48 bytes) ROOT LEAK: <malloc in processLargeFile(std::__cxx11::basic_string<char> const&) 0xb2f02c060> [32]
+         1 (16 bytes) <malloc in processLargeFile(std::__cxx11::basic_string<char> const&) 0xb2f030030> [16]

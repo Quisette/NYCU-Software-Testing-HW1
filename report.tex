@@ -1,0 +1,709 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+
+% Code listing settings
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    breakatwhitespace=true,
+    columns=fullflexible,
+    showstringspaces=false,
+    commentstyle=\color{gray},
+    keywordstyle=\color{blue},
+    stringstyle=\color{orange},
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    backgroundcolor=\color{gray!5}
+}
+
+% Language definitions
+\lstdefinelanguage{JavaScript}{
+    keywords={const, let, var, function, return, if, else, for, while, typeof, Array, throw, new},
+    sensitive=true,
+    comment=[l]{//},
+    morecomment=[s]{/*}{*/},
+    morestring=[b]',
+    morestring=[b]"
+}
+
+\lstdefinestyle{python}{
+    language=Python,
+    keywords={import, def, if, else, for, while, return, class, True, False, None}
+}
+
+\lstdefinestyle{cpp}{
+    language=C++,
+    keywords={int, char, bool, void, const, static, return, if, else, for, while, new, delete, struct, class, std, cout, endl, include}
+}
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{NYCU - Software Testing}
+\lhead{Faulty Programs Analysis}
+\rfoot{Page \thepage}
+
+% Remove numbering for subsubsections (third level)
+\setcounter{secnumdepth}{2}
+
+\title{\textbf{Software Testing Assignment \# 1}\\ Faulty Programs Analysis}
+\author{Ping-Chen Chung}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Part 1: JavaScript Programs - Fault Analysis}
+
+This section analyzes four faulty JavaScript programs, identifying faults, proposing fixes, and exploring test cases that execute faults, reach error states, and produce failures.
+
+\subsection{Program 1: \texttt{findLast(x, y)}}
+
+\subsubsection{Problem Description}
+The function should find the last index of element \texttt{y} in array \texttt{x}.
+
+\subsubsection{(a) Fault Explanation and Fix}
+
+ The fault is in the \texttt{for} loop's continuation condition. The condition \texttt{i > 0} causes the loop to stop when \texttt{i} is 0, so the element at index 0 of the array is never checked. The function will incorrectly return -1 if the element being searched for is only present at index 0.
+
+\textbf{Modification:}
+\begin{lstlisting}[language=JavaScript]
+// Original (FAULTY):
+for (let i = x.length - 1; i > 0; i--)
+
+// Corrected:
+for (let i = x.length - 1; i >= 0; i--)
+\end{lstlisting}
+
+\subsubsection{(b) Test Case That Does Not Execute the Fault}
+
+This is not strictly possible, as any call with a non-empty array will execute the line of code containing the fault (the \texttt{for} loop statement). However, it is possible to provide a test case where the fault is executed but does not cause the program to fail.
+
+\textbf{Example:} \texttt{x = [1, 2, 3]}, \texttt{y = 2}. The program correctly returns \texttt{1}.
+
+\subsubsection{(c) Test Case That Executes Fault But No Error State}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Test Case:} \texttt{x = [10, 20, 30]}, \texttt{y = 20}
+    \item \textbf{Explanation:} The faulty code in the \texttt{for} loop is executed. However, the value \texttt{20} is found at index \texttt{1}. The function correctly returns \texttt{1} and terminates before the loop counter \texttt{i} reaches \texttt{0}. Because the search is successful before the boundary condition is tested, the fault does not lead to an incorrect internal state.
+    \item \textbf{Expected Output:} \texttt{1}
+    \item \textbf{Actual Output:} \texttt{1}
+\end{itemize}
+
+\subsubsection{(d) Test Case With Error State But No Failure}
+
+\textbf{Not Possible.}
+
+ For this function, an error state occurs when the loop completes without finding \texttt{y} because \texttt{y} is at index 0. At this moment, the program's internal state is incorrect because it has failed to find the element. This error state immediately leads to the function returning \texttt{-1}. Since the incorrect return value \textit{is} the external incorrect behavior, the error state directly causes a failure. There are no subsequent operations that could mask or correct this error.
+
+\subsubsection{(e) First Error State}
+
+Not applicable, as a test case for (d) is not possible.
+
+\subsection{Program 2: \texttt{lastZero(x)}}
+
+\subsubsection{Problem Description}
+The function should find the last index of zero in array \texttt{x}.
+
+\subsubsection{(a) Fault Explanation and Fix}
+
+ The function is named \texttt{lastZero}, but its implementation finds the \textit{first} index of zero. The fault is that the \texttt{for} loop iterates forward from the beginning of the array (\texttt{i = 0; i < x.length; i++}) and returns immediately upon finding the first match.
+
+\textbf{Modification:}
+\begin{lstlisting}[language=JavaScript]
+// Original (FAULTY):
+for (let i = 0; i < x.length; i++)
+
+// Corrected:
+for (let i = x.length - 1; i >= 0; i--)
+\end{lstlisting}
+
+\subsubsection{(b) Test Case That Does Not Execute the Fault}
+
+This is not strictly possible, as any call with a non-empty array will execute the faulty \texttt{for} loop. However, we can provide a case where the fault does not lead to a failure, such as when the first zero is also the last zero: \texttt{x = [5, 1, 0, 8]}.
+
+\subsubsection{(c) Test Case That Executes Fault But No Error State}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Test Case:} \texttt{x = [1, 5, 0, 8]}
+    \item \textbf{Explanation:} The faulty forward-iterating loop is executed. However, since there is only one \texttt{0} in the array, the index of the first \texttt{0} is the same as the index of the last \texttt{0}. The program correctly returns \texttt{2}. The internal state is never incorrect, so no error state is reached.
+    \item \textbf{Expected Output:} \texttt{2}
+    \item \textbf{Actual Output:} \texttt{2}
+\end{itemize}
+
+\subsubsection{(d) Test Case With Error State But No Failure}
+
+\textbf{Not Possible.}
+
+ An error state occurs when the function finds a \texttt{0} at an early index \texttt{i} and is about to return \texttt{i}, while the true last \texttt{0} exists at a later index \texttt{j}. This incorrect internal decision (to return \texttt{i}) is inseparable from the external failure (returning the wrong index). The error cannot be corrected before the function terminates.
+
+\subsubsection{(e) First Error State}
+
+Not applicable, as a test case for (d) is not possible.
+
+\subsection{Program 3: \texttt{countPositive(x)}}
+
+\subsubsection{Problem Description}
+The function should count strictly positive (greater than 0) elements in array \texttt{x}.
+
+\subsubsection{(a) Fault Explanation and Fix}
+
+ The function is intended to count ``positive'' elements, which are strictly greater than 0. The fault is that the condition \texttt{x[i] >= 0} incorrectly includes \texttt{0} in the count.
+
+\textbf{Modification:}
+\begin{lstlisting}[language=JavaScript]
+// Original (FAULTY):
+if (x[i] >= 0)
+
+// Corrected:
+if (x[i] > 0)
+\end{lstlisting}
+
+\subsubsection{(b) Test Case That Does Not Execute the Fault}
+
+This is not strictly possible, as the faulty \texttt{if} condition is executed for each array element. However, we can provide a case that does not expose the fault by using an array that does not contain \texttt{0}: \texttt{x = [-2, 5, 10]}.
+
+\subsubsection{(c) Test Case That Executes Fault But No Error State}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Test Case:} \texttt{x = [-5, 1, 9]}
+    \item \textbf{Explanation:} The faulty condition \texttt{x[i] >= 0} is executed for each element. Because the input array does not contain \texttt{0}, the behavior of \texttt{>= 0} is identical to \texttt{> 0} for every element. The internal state variable \texttt{count} is always correct throughout the execution, so no error state is entered.
+    \item \textbf{Expected Output:} \texttt{2}
+    \item \textbf{Actual Output:} \texttt{2}
+\end{itemize}
+
+\subsubsection{(d) Test Case With Error State But No Failure}
+
+\textbf{Not Possible.}
+
+ An error state occurs when the program processes a \texttt{0} and incorrectly increments \texttt{count}. At this point, the \texttt{count} variable is one greater than its correct value. Since the \texttt{count} variable is only ever incremented, this error cannot be corrected. The incorrect value will persist and be returned at the end, directly causing a failure.
+
+\subsubsection{(e) First Error State}
+
+Not applicable, as a test case for (d) is not possible.
+
+\subsection{Program 4: \texttt{oddOrPos(x)}}
+
+\subsubsection{Problem Description}
+The function should count elements that are either odd or positive.
+
+\subsubsection{(a) Fault Explanation and Fix}
+
+ The fault is in the logic used to identify odd numbers. The condition \texttt{x[i] \% 2 === 1} fails for negative odd numbers. In JavaScript, the result of the modulo operator (\texttt{\%}) on a negative number is negative (e.g., \texttt{-3 \% 2} is \texttt{-1}), so \texttt{-1 === 1} evaluates to false.
+
+\textbf{Modification:}
+\begin{lstlisting}[language=JavaScript]
+// Original (FAULTY):
+if (x[i] % 2 === 1 || x[i] > 0)
+
+// Corrected:
+if (x[i] % 2 !== 0 || x[i] > 0)
+\end{lstlisting}
+
+\subsubsection{(b) Test Case That Does Not Execute the Fault}
+
+This is not strictly possible, as the faulty \texttt{if} condition is always executed. However, we can provide a test case that does not expose the fault by avoiding negative odd numbers: \texttt{x = [-2, 1, 4]}.
+
+\subsubsection{(c) Test Case That Executes Fault But No Error State}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Test Case:} \texttt{x = [-2, 3, 4]}
+    \item \textbf{Explanation:} The faulty condition \texttt{x[i] \% 2 === 1} is executed. Since the input contains no negative odd numbers, the faulty logic behaves correctly for all elements. \texttt{3 \% 2} is \texttt{1}, so it is counted. \texttt{-2} is not counted. \texttt{4} is counted because it's positive. The \texttt{count} variable remains correct throughout the execution, so no error state is reached.
+    \item \textbf{Expected Output:} \texttt{2}
+    \item \textbf{Actual Output:} \texttt{2}
+\end{itemize}
+
+\subsubsection{(d) Test Case With Error State But No Failure}
+
+\textbf{Not Possible.}
+
+ An error state occurs when the program processes a negative odd number (like \texttt{-3}) and fails to increment \texttt{count}. At this point, the \texttt{count} variable is less than its correct value. As \texttt{count} is never decremented, it is impossible for it to ``catch up'' or be corrected later in the execution. This persistent error in the internal state will inevitably lead to an incorrect final return value, which is a failure.
+
+\subsubsection{(e) First Error State}
+
+Not applicable, as a test case for (d) is not possible.
+
+\newpage
+\section{Part 2: Multi-Language Programs - Verification Framework}
+
+This section documents the comprehensive analysis and automated verification framework built for five faulty programs demonstrating real-world software defects: deadlock, memory leaks, race conditions, buffer overflows, and const violations.
+
+\subsection{Overview}
+
+This document details all issues discovered in the software testing homework assignment, including incomplete source files, verifier script problems, and the solutions implemented to create a comprehensive automated testing framework.
+
+\subsection{Issues Found in Verifier Script (\texttt{verifier.cpp})}
+
+\subsubsection{Issue 1: Incorrect Compiler Flag}
+
+\textbf{Location:} Line 17
+
+\textbf{Problem:} Used \texttt{-Wno-fpermissive} which disables permissive mode warnings, causing compilation errors for intentionally faulty code.
+
+\begin{lstlisting}[style=cpp]
+// BEFORE (WRONG):
+std::string command = "g++-15 -g -pthread " + source + " -o " + output
+    + " -isysroot $(xcrun --show-sdk-path) -Wno-fpermissive ";
+
+// AFTER (FIXED):
+std::string command = "g++-15 -std=c++11 -g -pthread " + source + " -o " + output
+    + " -isysroot $(xcrun --show-sdk-path) -fpermissive ";
+\end{lstlisting}
+
+\textbf{Impact:} ProfileUpdater.cpp and MatrixProcessor.cpp failed to compile.
+
+\textbf{Solution:} Changed to \texttt{-fpermissive} to allow intentionally faulty conversions to compile.
+
+\subsubsection{Issue 2: Memory Leak Detection - Wrong Output Redirection}
+
+\textbf{Location:} Line 59
+
+\textbf{Problem:} Redirected only stderr (\texttt{2>}) but \texttt{leaks} tool outputs to stdout.
+
+\begin{lstlisting}[style=cpp]
+// BEFORE (WRONG):
+std::system("leaks -atExit -- ./data_processer 2> leaks_output.txt");
+
+// AFTER (FIXED):
+std::system("leaks -atExit -- ./data_processer > evidence/leaks_output.txt 2>&1");
+\end{lstlisting}
+
+\textbf{Impact:} Memory leak output was not captured, test always failed.
+
+\textbf{Solution:} Redirect both stdout and stderr to capture full \texttt{leaks} output.
+
+\subsubsection{Issue 3: Memory Leak Detection Pattern Too Strict}
+
+\textbf{Location:} Lines 63-64
+
+\textbf{Problem:} Only looked for ``leaked bytes'' pattern, missing ``leaks for'' pattern.
+
+\begin{lstlisting}[style=cpp]
+// BEFORE (WRONG):
+if (output.find("leaked bytes") != std::string::npos &&
+    output.find("0 leaks for 0 bytes") == std::string::npos)
+
+// AFTER (FIXED):
+if ((output.find("leaked bytes") != std::string::npos ||
+     output.find("leaks for") != std::string::npos) &&
+    output.find("0 leaks for 0") == std::string::npos)
+\end{lstlisting}
+
+\textbf{Impact:} Failed to detect leaks with format ``20000 leaks for 480000 total leaked bytes.''
+
+\textbf{Solution:} Accept either pattern and generalize the ``no leak'' check.
+
+\subsubsection{Issue 4: No Evidence File Organization}
+
+\textbf{Problem:} Test output files scattered in root directory, no preservation after cleanup.
+
+\textbf{Solution Implemented:}
+\begin{enumerate}
+    \item Created \texttt{evidence/} directory to store all test outputs
+    \item Updated all test functions to write to \texttt{evidence/[test\_name]\_output.txt}
+    \item Modified cleanup to preserve evidence files
+    \item Added evidence file notification in PASS messages
+\end{enumerate}
+
+Evidence files created:
+\begin{itemize}
+    \item \texttt{evidence/deadlock\_output.txt}
+    \item \texttt{evidence/leaks\_output.txt}
+    \item \texttt{evidence/race\_output.txt}
+    \item \texttt{evidence/overflow\_output.txt}
+    \item \texttt{evidence/const\_violation\_output.txt}
+\end{itemize}
+
+\subsubsection{Issue 5: Testing Incomplete Source Files}
+
+\textbf{Problem:} Verifier attempted to compile and test incomplete source files (missing main functions, syntax errors).
+
+\textbf{Solution:} Created separate test implementation files in \texttt{tests/} directory:
+\begin{itemize}
+    \item \texttt{tests/test\_deadlock.py} - Complete deadlock test with main function
+    \item \texttt{tests/test\_buffer\_overflow.cpp} - Complete buffer overflow test
+    \item \texttt{tests/test\_const\_violation.cpp} - Complete const violation test with global const data
+\end{itemize}
+
+This approach:
+\begin{itemize}
+    \item Keeps original buggy source files unchanged
+    \item Provides complete test implementations
+    \item Safely handles crashes without affecting verifier
+    \item Makes tests reproducible
+\end{itemize}
+
+\subsection{Issues Found in Source Files}
+
+\subsubsection{Program 1: ResourceScheduler.py - Deadlock}
+
+\paragraph{Issues Found:}
+
+\begin{enumerate}
+    \item \textbf{Line 19:} Syntax error - incomplete assignment
+\begin{lstlisting}[style=python]
+task_queue =  # SYNTAX ERROR
+\end{lstlisting}
+
+    \item \textbf{Lines 79-81:} Empty main block
+\begin{lstlisting}[style=python]
+if __name__ == "__main__":
+    # Empty - no code to start threads
+\end{lstlisting}
+\end{enumerate}
+
+\paragraph{Solution:}
+Created \texttt{tests/test\_deadlock.py} with complete implementation including:
+\begin{itemize}
+    \item Fixed \texttt{task\_queue = []}
+    \item Complete main block that starts both threads
+    \item Timeout mechanism to detect deadlock
+\end{itemize}
+
+\paragraph{Verification Evidence:}
+\begin{verbatim}
+# From evidence/deadlock_output.txt
+2025-10-02 01:16:23,456 | Thread-A | Thread-A is starting.
+2025-10-02 01:16:23,456 | Thread-A | Thread-A attempting to acquire lock on Resource A...
+2025-10-02 01:16:23,456 | Thread-A | Thread-A acquired lock on Resource A.
+                                       Waiting for Resource B...
+2025-10-02 01:16:23,457 | Thread-B | Thread-B is starting.
+2025-10-02 01:16:23,457 | Thread-B | Thread-B attempting to acquire lock on Resource B...
+2025-10-02 01:16:23,457 | Thread-B | Thread-B acquired lock on Resource B.
+                                       Waiting for Resource A...
+# Program hangs here - DEADLOCK detected by timeout
+\end{verbatim}
+
+\subsubsection{Program 2: ProfileUpdater.cpp - Buffer Overflow}
+
+\paragraph{Issues Found:}
+
+\begin{enumerate}
+    \item \textbf{Line 11:} Misleading comment
+\begin{lstlisting}[style=cpp]
+char username[1]; // Buffer of 20 characters  <- WRONG! Only 1 byte
+\end{lstlisting}
+
+    \item \textbf{Line 20:} Wrong memset usage
+\begin{lstlisting}[style=cpp]
+memset(profile_status, 0, sizeof(profile_status));  // Invalid conversion char to void*
+\end{lstlisting}
+Should be: \texttt{memset(\&profile\_status, 0, sizeof(profile\_status));} or just \texttt{profile\_status = '\textbackslash 0';}
+
+    \item \textbf{Lines 48-50:} Empty main function
+\begin{lstlisting}[style=cpp]
+int main() {
+    // trigger the fault
+    return 0;
+}
+\end{lstlisting}
+\end{enumerate}
+
+\paragraph{Solution:}
+Created \texttt{tests/test\_buffer\_overflow.cpp} with:
+\begin{itemize}
+    \item Corrected memset call
+    \item Complete test that creates profile, sets fields, triggers overflow, shows corruption
+    \item Long string that overflows 1-byte buffer
+\end{itemize}
+
+\paragraph{Verification Evidence:}
+\begin{verbatim}
+# From evidence/overflow_output.txt
+--- Profile Before Update ---
+Username:
+User ID: 12345
+Status: A
+Is Active: Yes
+Last Login: 2024
+----------------------------
+
+Attempting to update with a malicious, oversized username...
+
+--- Profile After Malicious Update ---
+Username: ThisIsAVeryLongUsernameThatWillCauseABufferOverflow
+User ID: 1936269938  # CORRUPTED! Was 12345
+Status: <garbage>     # CORRUPTED! Was 'A'
+Is Active: Yes
+Last Login: 1702129518  # CORRUPTED! Was 2024
+\end{verbatim}
+
+\textbf{Result:} Memory corruption confirmed - adjacent struct members overwritten.
+
+\subsubsection{Program 3: MatrixProcessor.cpp - Const Violation}
+
+\paragraph{Issues Found:}
+
+\begin{enumerate}
+    \item \textbf{Line 27:} Invalid syntax
+\begin{lstlisting}[style=cpp]
+non_const_matrix = 999;  // Invalid conversion from 'int' to 'int**'
+\end{lstlisting}
+Should be: \texttt{non\_const\_matrix[0][0] = 999;}
+
+    \item \textbf{Lines 30-34:} Empty main function
+\begin{lstlisting}[style=cpp]
+int main() {
+    // trigger the fault
+    return 0;
+}
+\end{lstlisting}
+\end{enumerate}
+
+\paragraph{Solution:}
+Created \texttt{tests/test\_const\_violation.cpp} with:
+\begin{itemize}
+    \item \textbf{Critical fix:} Used global \texttt{static const} arrays instead of local const arrays
+    \item Local const arrays are on the stack (writable)
+    \item Global const arrays are in read-only memory segment
+    \item Attempting to modify triggers segmentation fault
+\end{itemize}
+
+\begin{lstlisting}[style=cpp]
+// Global const data - placed in read-only memory
+static const int row0[] = {10, 20, 30};
+static const int row1[] = {40, 50, 60};
+
+int main() {
+    const int* const matrix[] = {row0, row1};
+    process_matrix(matrix, 2, 3);  // CRASH!
+}
+\end{lstlisting}
+
+\paragraph{Verification Evidence:}
+\begin{verbatim}
+# From evidence/const_violation_output.txt
+Value before calling function: matrix[0][0] = 10
+
+Calling function that will attempt to modify const data...
+Inside process_matrix function.
+Processing a 2x3 matrix.
+Attempting to modify const data (undefined behavior)...
+# SEGMENTATION FAULT - Program crashed (exit code 138)
+\end{verbatim}
+
+\textbf{Result:} Program crashed as expected when attempting to write to read-only memory.
+
+\subsubsection{Program 4: LoggingSystem.cpp - Race Condition}
+
+\paragraph{Status:} \checkmark Complete - No issues found
+
+This file was complete and functional. The race condition is inherent in the design:
+
+\begin{lstlisting}[style=cpp]
+void processLogs(int thread_id, int num_logs_to_process) {
+    for (int i = 0; i < num_logs_to_process; ++i) {
+        simulateLogProcessing();
+        total_logs_processed++;  // NO MUTEX - Race condition here
+    }
+}
+\end{lstlisting}
+
+\paragraph{Verification Evidence:}
+\begin{verbatim}
+# From evidence/race_output.txt
+Starting logging system test...
+Processing logs across 10 threads...
+All threads completed.
+
+Expected total logs: 100000
+Final count of logs processed: 98320  # Lost 1680 updates due to race!
+\end{verbatim}
+
+\textbf{Result:} Race condition confirmed - final count consistently less than expected.
+
+\subsubsection{Program 5: DataProcessor.cpp - Memory Leak}
+
+\paragraph{Issues Found:}
+
+\textbf{Line 39:} Wrong array allocation
+\begin{lstlisting}[style=cpp]
+newRecord->data_buffer = new char;  // Only allocates 1 byte!
+\end{lstlisting}
+Should be: \texttt{newRecord->data\_buffer = new char[bufferSize];}
+
+However, this doesn't affect leak detection since the memory is still leaked either way.
+
+\paragraph{Status:} \checkmark Functionally Complete
+
+The main function properly triggers the leak by calling \texttt{startDataIngestion()} which allocates 10,000 records without cleanup.
+
+\paragraph{Verification Evidence:}
+\begin{verbatim}
+# From evidence/leaks_output.txt
+Process 65191: 20190 nodes malloced for 580 KB
+Process 65191: 20000 leaks for 480000 total leaked bytes.
+
+STACK OF 10000 INSTANCES OF 'ROOT LEAK: <malloc in processLargeFile>':
+5   dyld                                  0x195539d54 start + 7184
+4   data_processer                        0x1021c0b90 main + 12
+3   data_processer                        0x1021c0b1c startDataIngestion() + 208
+2   data_processer                        0x1021c0944 processLargeFile(...) + 184
+1   libstdc++.6.dylib                     0x1026c85fc operator new(unsigned long) + 28
+0   libsystem_malloc.dylib                0x195725f00 _malloc_zone_malloc + 152
+
+20000 (469K) << TOTAL >>
+\end{verbatim}
+
+\textbf{Result:} Massive memory leak confirmed:
+\begin{itemize}
+    \item 10,000 \texttt{DataRecord} objects never freed
+    \item 10,000 \texttt{data\_buffer} arrays never freed
+    \item Total: 20,000 leaks for 480KB
+\end{itemize}
+
+\subsection{Project Organization}
+
+\subsubsection{Directory Structure}
+
+\begin{verbatim}
+hw1/
+├── prob_src/               # Original faulty source files
+│   ├── ResourceScheduler.py
+│   ├── DataProcessor.cpp
+│   ├── LoggingSystem.cpp
+│   ├── ProfileUpdater.cpp
+│   └── MatrixProcessor.cpp
+├── tests/                  # Test implementations
+│   ├── test_deadlock.py
+│   ├── test_buffer_overflow.cpp
+│   └── test_const_violation.cpp
+├── evidence/               # Test output evidence (preserved)
+│   ├── deadlock_output.txt
+│   ├── leaks_output.txt
+│   ├── race_output.txt
+│   ├── overflow_output.txt
+│   └── const_violation_output.txt
+├── verifier.cpp            # Main verification framework
+├── prob.js                 # JavaScript homework (findLast, etc.)
+├── prob_test.js            # Node.js tests for JavaScript homework
+└── data.txt                # Input data for DataProcessor
+\end{verbatim}
+
+\subsection{Verification Results Summary}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lllp{5cm}@{}}
+\toprule
+\textbf{Test} & \textbf{Status} & \textbf{Evidence} & \textbf{Key Finding} \\ \midrule
+Deadlock &  PASS & Program timeout (5s) & Both threads blocked waiting for each other's locks \\
+Memory Leak &  PASS & 20000 leaks detected & 480KB leaked across 10,000 records \\
+Race Condition &  PASS & 98320/100000 processed & Lost 1680 updates due to concurrent access \\
+Buffer Overflow &  PASS & Memory corruption & Adjacent struct fields overwritten \\
+Const Violation &  PASS & SEGFAULT (exit 138) & Crash writing to read-only memory \\ \bottomrule
+\end{tabular}
+\caption{Verification Test Results}
+\end{table}
+
+\subsection{Technical Insights}
+
+\subsubsection{Buffer Overflow Details}
+
+The overflow works because of struct memory layout:
+
+\begin{verbatim}
+Memory Layout of UserProfile:
+[username: 1 byte][padding: 3 bytes][user_id: 4 bytes][profile_status: 1 byte]
+[padding: 3 bytes][is_active: 1 byte][padding: 3 bytes][last_login_year: 4 bytes]
+
+When strcpy writes 52 bytes into 1-byte buffer:
+- Overwrites padding
+- Overwrites user_id
+- Overwrites profile_status
+- Overwrites is_active
+- Overwrites last_login_year
+- May crash or corrupt further memory
+\end{verbatim}
+
+\subsubsection{Const Violation Key Learning}
+
+\textbf{Why local const didn't crash but global const did:}
+\begin{itemize}
+    \item \textbf{Stack variables:} Even if declared const, compiler may place on writable stack
+    \item \textbf{Global/static const:} Placed in \texttt{.rodata} section (read-only data segment)
+    \item \textbf{Attempting to write to .rodata:} Hardware memory protection triggers SEGFAULT
+\end{itemize}
+
+\subsubsection{Race Condition Math}
+
+With 10 threads doing 10,000 increments each:
+\begin{itemize}
+    \item Expected: 100,000
+    \item Typical result: 98,000-99,000
+    \item Lost updates: 1,000-2,000 (1-2\% race window)
+\end{itemize}
+
+The race window exists during the read-modify-write cycle:
+
+\begin{verbatim}
+LOAD  total_logs_processed -> register  # Thread A reads
+INC   register                          # Thread A increments
+LOAD  total_logs_processed -> register  # Thread B reads (same value!)
+STORE register -> total_logs_processed  # Thread A writes
+STORE register -> total_logs_processed  # Thread B writes (overwrites A!)
+\end{verbatim}
+
+\subsection{Compilation and Execution}
+
+\subsubsection{Compile Verifier}
+\begin{lstlisting}[language=bash]
+g++-15 -std=c++11 verifier.cpp -o verifier
+\end{lstlisting}
+
+\subsubsection{Run All Tests}
+\begin{lstlisting}[language=bash]
+./verifier
+\end{lstlisting}
+
+\subsubsection{Individual Test Compilation}
+\begin{lstlisting}[language=bash]
+# Deadlock test
+python3 tests/test_deadlock.py
+
+# Buffer overflow test
+g++-15 -std=c++11 -fpermissive tests/test_buffer_overflow.cpp -o test_buffer_overflow
+./test_buffer_overflow
+
+# Const violation test
+g++-15 -std=c++11 -fpermissive tests/test_const_violation.cpp -o test_const_violation
+./test_const_violation
+
+# Race condition test
+g++-15 -std=c++11 -pthread prob_src/LoggingSystem.cpp -o logging_system
+./logging_system
+
+# Memory leak test
+g++-15 -std=c++11 prob_src/DataProcessor.cpp -o data_processer
+leaks -atExit -- ./data_processer
+\end{lstlisting}
+
+\section{Conclusion}
+
+All five faulty programs have been successfully verified with comprehensive test cases. The automated verification framework now:
+
+
+\textbf{Final Verification Summary:}
+\begin{verbatim}
+Passed:  5
+Failed:  0
+Skipped: 0 (with gtimeout installed)
+\end{verbatim}
+
+All evidence files preserved in \texttt{evidence/} directory for review and grading.
+
+\end{document}

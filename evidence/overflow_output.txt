@@ -1,0 +1,25 @@
+--- Profile Before Update ---
+--- User Profile Details ---
+Username: 
+User ID: 12345
+Status: A
+Is Active: Yes
+Last Login: 2024
+----------------------------
+
+Attempting to update with a malicious, oversized username...
+
+Authenticating user...
+Updating user profile with new username...
+Profile update attempt complete.
+
+--- Profile After Malicious Update ---
+--- User Profile Details ---
+Username: ThisIsAVeryLongUsernameThatWillCauseABufferOverflow
+User ID: 1447129929
+Status: e
+Is Active: No
+Last Login: 1432841839
+----------------------------
+
+Test conclusion: Observe how the 'User ID', 'Is Active', and 'Last Login' fields have been overwritten with garbage data from the long username string.
